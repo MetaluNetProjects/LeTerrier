@@ -166,7 +166,7 @@ void setup(void)
 // ---------- Main loop ------------
 
 #define REWIND_SPEED -350
-#define END_POS_TRANS 11100
+#define END_POS_TRANS 10900
 #define MAX_SPEED_TRANS 350
 #define END_POS_ROT 9977
 #define MAX_SPEED_ROT 395
