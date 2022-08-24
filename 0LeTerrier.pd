@@ -9,8 +9,6 @@
 #X text 645 84 = 5m / 5mn / 1mn;
 #X text 560 177 Mesure pour 5/5/1 : avance=5.85mn recule=2.47mn;
 #X msg 587 85 900 11 3;
-#X obj 42 199 hsl 150 20 0 1 0 0 ConsignY empty ConsignY 10 10 0 14
-#00fc04 #000000 #000000 0 1;
 #N canvas 800 112 561 382 image 0;
 #X obj 83 346 system;
 #X obj 24 115 getdir;
@@ -51,21 +49,9 @@
 #X connect 18 0 11 0;
 #X restore 641 215 pd image;
 #X msg 626 116 500 1 1;
-#X obj 202 131 tgl 60 0 RegulXSTOP empty XSTOP 3 30 0 19 #fc0400 #000000
-#000000 0 1;
-#X obj 202 196 tgl 60 0 RegulYSTOP empty YSTOP 3 30 0 19 #fc0400 #000000
-#000000 0 1;
-#X obj 43 169 hsl 150 20 0 1 0 0 ConsignX ConsignX-rcv ConsignX 10
-10 0 14 #00fc04 #000000 #000000 0 0;
-#X obj 26 126 hradio 15 1 0 5 empty empty empty 0 -8 0 10 #fcfcfc #000000
-#000000 0;
-#X floatatom 88 145 5 0 0 0 - - - 0;
-#X msg 129 131 0.5;
-#X obj 43 148 / 5;
 #X obj 41 20 pied/pied 0 12346;
-#X msg 8 210 0.5;
 #X obj 41 -3 declare -path Fraise;
-#N canvas 402 77 1152 819 Store 1;
+#N canvas 528 168 1152 819 Store 1;
 #N canvas 471 177 448 444 analog 0;
 #X obj 152 -57 inlet;
 #X obj 152 -20 list split 1;
@@ -244,6 +230,20 @@
 #X msg 878 659 9977;
 #X msg 632 493 gainP 40 \, gainI 1 \, gainD 0 \, max 1023;
 #X msg 868 496 gainP 40 \, gainI 1 \, gainD 0 \, max 1023;
+#X obj 914 247 timer;
+#X floatatom 914 268 5 0 0 0 - - - 0;
+#X obj 914 288 / 1000;
+#X floatatom 914 309 5 0 0 0 - - - 0;
+#X obj 928 214 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X obj 899 215 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X obj 820 178 tgl 15 0 empty empty empty 17 7 0 10 #00ff04 #000000
+#000000 0 1;
+#X obj 820 198 * 255;
+#X obj 820 152 metro 36000;
+#X obj 820 122 tgl 15 0 empty empty empty 17 7 0 10 #ff8300 #000000
+#000000 0 1;
 #X connect 0 0 18 0;
 #X connect 1 0 3 0;
 #X connect 1 0 82 0;
@@ -333,13 +333,18 @@
 #X connect 100 0 94 0;
 #X connect 101 0 68 0;
 #X connect 102 0 70 0;
+#X connect 103 0 104 0;
+#X connect 104 0 105 0;
+#X connect 105 0 106 0;
+#X connect 107 0 103 1;
+#X connect 108 0 103 0;
+#X connect 109 0 110 0;
+#X connect 110 0 62 0;
+#X connect 110 0 59 0;
+#X connect 111 0 109 0;
+#X connect 112 0 111 0;
 #X restore 42 99 pd Store;
 #X connect 0 0 8 0;
 #X connect 8 0 1 0;
-#X connect 11 0 1 0;
-#X connect 15 0 18 0;
-#X connect 17 0 14 0;
-#X connect 18 0 14 0;
-#X connect 18 0 16 0;
-#X connect 20 0 9 0;
+#X connect 10 0 1 0;
 #X coords 0 0 0.00203252 0.00161812 280 45 0;
