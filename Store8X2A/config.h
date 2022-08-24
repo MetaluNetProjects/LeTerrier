@@ -2,11 +2,9 @@
 #define _CONFIG_H_
 
 
-//DCMotor config
-#define UINCPOW 10
-
-#define RAMP_UINCPOW 10
+#define RAMP_UINCPOW 7
 #define RAMP_MAXERROR 1
+#define RAMP_TO_POS_POW 4
 
 //#define MOTC_PWM 1
 //#define MOTD_PWM 2
@@ -29,6 +27,8 @@
 
 #define MOTC_ENDLED K5
 #define MOTD_ENDLED K9
+
+#define DMX_ENABLE MA2
 
 #endif // _CONFIG_H_
 

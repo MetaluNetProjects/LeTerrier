@@ -53,7 +53,7 @@ DCMOTOR_DECLARE(D);
 long int TestVar,TestVar2;
 int dmxchan; // DMX first channel.
 
-unsigned char PERIOD=25;
+unsigned char PERIOD=10;
 unsigned char mainCount=0;
 t_delay mainDelay;
 
@@ -106,12 +106,16 @@ void setup(void)
 	
 	dcmotorInit(C);
 	dcmotorInit(D);
-	
+
 	DCMOTOR(C).Setting.onlyPositive = 1;
+	DCMOTOR(C).Setting.PosErrorGain = 4;
 	DCMOTOR(D).Setting.onlyPositive = 1;
+	DCMOTOR(D).Setting.PosErrorGain = 4;
 
 	pinModeDigitalOut(MOTC_ENDLED);
 	pinModeDigitalOut(MOTD_ENDLED);
+	
+	pinModeDigitalIn(DMX_ENABLE);
 
 #if 0
 	DCMOTOR(C).Setting.PosWindow = 1;
@@ -161,18 +165,39 @@ void setup(void)
 
 // ---------- Main loop ------------
 
-#define REWIND_SPEED -200
-#define END_POS 1000
-#define CONSIGN_POS(p) (((long int)p * END_POS) / 256)
-#define MAX_SPEED 1000
-#define CONSIGN_SPEED(s) (((long int)s * MAX_SPEED) / 256)
+#define REWIND_SPEED -350
+#define END_POS_TRANS 11100
+#define MAX_SPEED_TRANS 350
+#define END_POS_ROT 9977
+#define MAX_SPEED_ROT 395
+
+#define CONSIGN_POS(p, max) (((long int)p * max) / 256)
+#define CONSIGN_SPEED(s, max) (((long int)s * max) / 256)
 void dmxService()
 {
-	static byte pos1, speed1, pos2, speed2;
+	static int pos1, pos2;
+	static byte speed1, speed2;
+	static byte oldDMxEnable = 0;
+
+	if(digitalRead(DMX_ENABLE) != oldDMxEnable) {
+		oldDMxEnable = digitalRead(DMX_ENABLE);
+		if(oldDMxEnable == 0) {
+			DCMOTOR(C).Setting.Mode = 0; // mode PWM
+			DCMOTOR(C).Vars.PWMConsign = 0;
+			rampSetPos(&DCMOTOR(C).PosRamp, 0);
+			DCMOTOR(D).Setting.Mode = 0; // mode PWM
+			DCMOTOR(D).Vars.PWMConsign = 0;
+			rampSetPos(&DCMOTOR(D).PosRamp, 0);
+		}
+	}
+	if(oldDMxEnable == 0) return;
+	//if(digitalRead(DMX_ENABLE) == 0) return;
 
 	pos1 = DMXSlaveGet(dmxchan);
+	if(pos1 == 0) pos1 = -2;
 	speed1 = DMXSlaveGet(dmxchan + 1);
 	pos2 = DMXSlaveGet(dmxchan + 2);
+	if(pos2 == 0) pos2 = -10;
 	speed2 = DMXSlaveGet(dmxchan + 3);
 	
 	if(DCMOTOR(C).VolVars.homed == 0) {
@@ -180,8 +205,8 @@ void dmxService()
 		DCMOTOR(C).Vars.PWMConsign = REWIND_SPEED;
 		rampSetPos(&DCMOTOR(C).PosRamp, 0);
 	} else {
-		rampGoto(&DCMOTOR(C).PosRamp, CONSIGN_POS(pos1));
-		DCMOTOR(C).PosRamp.maxSpeed = CONSIGN_SPEED(speed1);
+		rampGoto(&DCMOTOR(C).PosRamp, CONSIGN_POS(pos1, END_POS_TRANS));
+		DCMOTOR(C).PosRamp.maxSpeed = CONSIGN_SPEED(speed1, MAX_SPEED_TRANS);
 		DCMOTOR(C).Setting.Mode = 2; // mode POSITION
 	}
 
@@ -190,8 +215,8 @@ void dmxService()
 		DCMOTOR(D).Vars.PWMConsign = REWIND_SPEED;
 		rampSetPos(&DCMOTOR(D).PosRamp, 0);
 	} else {
-		rampGoto(&DCMOTOR(D).PosRamp, CONSIGN_POS(pos2));
-		DCMOTOR(D).PosRamp.maxSpeed = CONSIGN_SPEED(speed2);
+		rampGoto(&DCMOTOR(D).PosRamp, CONSIGN_POS(pos2, END_POS_ROT));
+		DCMOTOR(D).PosRamp.maxSpeed = CONSIGN_SPEED(speed2, MAX_SPEED_ROT);
 		DCMOTOR(D).Setting.Mode = 2; // mode POSITION
 	}
 }
@@ -230,13 +255,22 @@ void loop() {
 		fraiseService();
 		
 		if(++mainCount > PERIOD){
+			static byte printstate = 0;
 			mainCount = 0;
 			#if 0
 			if(t2%2) printf("C MX %ld %ld %d %d\n",DCMOT_GETPOS(X),(long)(DCMOT(X).PosRamp.ConsignPos>>RAMP_UINCPOW), DCMOT(X).Vars.PWMConsign,DCMOT(X).Setting.Mode/*.VolVars.homed*/);
 			/*else printf("C MD %ld %ld %d %d\n",DCMOT_GETPOS(D),(long)(DCMOT(D).PosRamp.ConsignPos>>RAMP_UINCPOW), DCMOT(D).Vars.PWMConsign,DCMOT(D).VolVars.homed);*/
 			#endif
-			printf("CM %d %ld %d %ld %d\n", DCMOTOR(C).Vars.PWMConsign, rampGetPos(&DCMOTOR(C).PosRamp),
-				DCMOTOR(D).Vars.PWMConsign, rampGetPos(&DCMOTOR(D).PosRamp), DCMOTOR(C).VolVars.end);
+			if(printstate == 0) {
+				printf("CM %d %ld %d %ld\n",
+					DCMOTOR(C).Vars.PWMConsign, rampGetPos(&DCMOTOR(C).PosRamp),
+					DCMOTOR(D).Vars.PWMConsign, rampGetPos(&DCMOTOR(D).PosRamp));
+			} else if(printstate == 1) {
+				printf("Cm %ld %d %ld %d\n", 
+					DCMOTOR(C).VolVars.Position, DCMOTOR(C).VolVars.end, 
+					DCMOTOR(D).VolVars.Position, DCMOTOR(D).VolVars.end);
+			}
+			if(printstate++ > 2) printstate = 0;
 		}
 	}
 }

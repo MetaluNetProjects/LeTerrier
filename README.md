@@ -2,7 +2,7 @@
 ## DMX512-controlled motorized window shade
 
 
-Each shade is assigned to a DMX channel by the use of the Pd patch and a Fraise Pied USB.
+Each shade can be assigned to a DMX channel by the use of the Pd patch and an USB Fraise Pied.
 
 The first shade is pre-assigned to channel 401,
 the second one is channel 405.
