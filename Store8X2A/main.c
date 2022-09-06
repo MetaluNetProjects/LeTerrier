@@ -168,7 +168,9 @@ void setup(void)
 #define REWIND_SPEED -350
 #define END_POS_TRANS 10900
 #define MAX_SPEED_TRANS 350
-#define END_POS_ROT 9977
+//#define END_POS_ROT 9977
+#define END_POS_ROT 7900
+//#define END_POS_ROT 6200
 #define MAX_SPEED_ROT 395
 
 #define CONSIGN_POS(p, max) (((long int)p * max) / 256)
